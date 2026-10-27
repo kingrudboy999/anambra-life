@@ -1,7 +1,4 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Ionicons } from '@expo/vector-icons';
 import {
   SafeAreaView,
   ScrollView,
@@ -14,17 +11,22 @@ import {
   TextInput,
   Pressable,
 } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 
 const Tab = createBottomTabNavigator();
 
 const stories = [
-  { id: '1', name: 'You', color: '#8b5cf6' },
-  { id: '2', name: 'Chika', color: '#ec4899' },
-  { id: '3', name: 'Ayo', color: '#f59e0b' },
-  { id: '4', name: 'Mina', color: '#10b981' },
-  { id: '5', name: 'Nnam', color: '#38bdf8' },
-  { id: '6', name: 'Grace', color: '#f97316' },
+  { id: 's1', name: 'You', color: '#8b5cf6', active: true },
+  { id: 's2', name: 'Ada', color: '#f472b6' },
+  { id: 's3', name: 'Tobi', color: '#22d3ee' },
+  { id: 's4', name: 'Mia', color: '#fbbf24' },
+  { id: 's5', name: 'Ike', color: '#34d399' },
+  { id: 's6', name: 'Nora', color: '#f97316' },
 ];
+
+const trending = ['#Anambra', '#Creator', '#Startup', '#NightLife', '#Community'];
 
 const posts = [
   {
@@ -32,30 +34,32 @@ const posts = [
     author: 'Ada Okafor',
     handle: '@ada_works',
     time: '2h ago',
-    text: 'Sunset in Onitsha is always a reminder that good things can still feel peaceful. What are you building today?',
+    text: 'Sunset in Onitsha is always a reminder that good things can still feel peaceful. Building something meaningful for creators in Anambra.',
     image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80',
     likes: 1240,
     comments: 86,
     shares: 31,
+    accent: '#8b5cf6',
   },
   {
     id: 'p2',
     author: 'Kingsley Duru',
     handle: '@kingsley',
     time: '4h ago',
-    text: 'Just wrapped a livestream for our local business community. Excited to keep supporting creators in Anambra.',
+    text: 'Anambra creators are here. We are building with community, talent, and local stories at the center.',
     image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80',
     likes: 980,
     comments: 54,
     shares: 22,
+    accent: '#22d3ee',
   },
 ];
 
 const messages = [
-  { id: 'm1', name: 'Chika', preview: 'Can we meet later for the project?', time: '10:24', unread: 3 },
-  { id: 'm2', name: 'Bolu', preview: 'Your video call is ready.', time: '09:12', unread: 1 },
-  { id: 'm3', name: 'Mina', preview: 'The new post looks amazing!', time: 'Yesterday', unread: 0 },
-  { id: 'm4', name: 'Ayo', preview: 'I sent the draft for review.', time: 'Mon', unread: 0 },
+  { id: 'm1', name: 'Chika', preview: 'Can we do the live session by 7?', time: '10:24', unread: 3 },
+  { id: 'm2', name: 'Bolu', preview: 'Your edits are ready for review.', time: '09:12', unread: 1 },
+  { id: 'm3', name: 'Mina', preview: 'The launch post looks amazing.', time: 'Yesterday', unread: 0 },
+  { id: 'm4', name: 'Ayo', preview: 'I sent the file to the group.', time: 'Mon', unread: 0 },
 ];
 
 const calls = [
@@ -67,36 +71,12 @@ const calls = [
 function StoryBubble({ item }) {
   return (
     <View style={styles.storyWrap}>
-      <View style={[styles.storyCircle, { backgroundColor: item.color }]}>
-        <Text style={styles.storyInitial}>{item.name.charAt(0)}</Text>
+      <View style={[styles.storyRing, item.active && styles.storyActiveRing, { borderColor: item.color }]}>
+        <View style={[styles.storyCircle, { backgroundColor: item.color }]}>
+          <Text style={styles.storyInitial}>{item.name.charAt(0)}</Text>
+        </View>
       </View>
       <Text style={styles.storyName}>{item.name}</Text>
-    </View>
-  );
-}
-
-function FeedCard({ item }) {
-  return (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{item.author.charAt(0)}</Text>
-        </View>
-        <View style={styles.userMeta}>
-          <Text style={styles.authorName}>{item.author}</Text>
-          <Text style={styles.handleText}>{item.handle} • {item.time}</Text>
-        </View>
-      </View>
-
-      <Text style={styles.postText}>{item.text}</Text>
-
-      <Image source={{ uri: item.image }} style={styles.postImage} />
-
-      <View style={styles.actionRow}>
-        <Text style={styles.actionText}>❤ {item.likes}</Text>
-        <Text style={styles.actionText}>💬 {item.comments}</Text>
-        <Text style={styles.actionText}>↻ {item.shares}</Text>
-      </View>
     </View>
   );
 }
@@ -104,28 +84,111 @@ function FeedCard({ item }) {
 function HomeScreen() {
   return (
     <SafeAreaView style={styles.screen}>
-      <StatusBar barStyle="dark-content" />
-      <View style={styles.header}>
-        <Text style={styles.logo}>Anambra Life</Text>
-        <Ionicons name="notifications-outline" size={24} color="#1f2937" />
-      </View>
+      <StatusBar barStyle="light-content" />
 
-      <View style={styles.storyContainer}>
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={stories}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <StoryBubble item={item} />}
-        />
-      </View>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.topBar}>
+          <View>
+            <Text style={styles.eyebrow}>Good evening</Text>
+            <Text style={styles.brand}>Anambra</Text>
+          </View>
 
-      <FlatList
-        data={posts}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <FeedCard item={item} />}
-        contentContainerStyle={{ paddingBottom: 24 }}
-      />
+          <View style={styles.actionButtons}>
+            <View style={styles.iconButton}>
+              <Ionicons name="search-outline" size={18} color="#e2e8f0" />
+            </View>
+            <View style={styles.iconButton}>
+              <Ionicons name="notifications-outline" size={18} color="#e2e8f0" />
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.searchBox}>
+          <Ionicons name="search-outline" size={16} color="#94a3b8" />
+          <TextInput
+            placeholder="Search creators, topics, trends"
+            placeholderTextColor="#94a3b8"
+            style={styles.searchInput}
+          />
+        </View>
+
+        <View style={styles.statsCard}>
+          <View style={styles.statsHeader}>
+            <Text style={styles.statsTitle}>Community Pulse</Text>
+            <Text style={styles.statsTag}>Live</Text>
+          </View>
+
+          <View style={styles.statsGrid}>
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>89K</Text>
+              <Text style={styles.statLabel}>followers</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>3.2K</Text>
+              <Text style={styles.statLabel}>posts</Text>
+            </View>
+            <View style={styles.statBox}>
+              <Text style={styles.statNumber}>120</Text>
+              <Text style={styles.statLabel}>events</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.storySection}>
+          <FlatList
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={stories}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <StoryBubble item={item} />}
+          />
+        </View>
+
+        <View style={styles.trendingWrap}>
+          <Text style={styles.sectionTitle}>Trending</Text>
+          <View style={styles.chipRow}>
+            {trending.map((tag) => (
+              <View key={tag} style={styles.chip}>
+                <Text style={styles.chipText}>{tag}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {posts.map((item) => (
+          <View key={item.id} style={styles.feedCard}>
+            <View style={styles.cardHeader}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{item.author.charAt(0)}</Text>
+              </View>
+              <View style={styles.metaWrap}>
+                <Text style={styles.authorName}>{item.author}</Text>
+                <Text style={styles.handleText}>{item.handle} • {item.time}</Text>
+              </View>
+              <Ionicons name="ellipsis-horizontal" size={18} color="#cbd5e1" />
+            </View>
+
+            <Text style={styles.postText}>{item.text}</Text>
+
+            <Image source={{ uri: item.image }} style={styles.postImage} />
+
+            <View style={styles.cardFooter}>
+              <View style={styles.footerItem}>
+                <Ionicons name="heart-outline" size={18} color="#f1f5f9" />
+                <Text style={styles.footerText}>{item.likes}</Text>
+              </View>
+              <View style={styles.footerItem}>
+                <Ionicons name="chatbox-ellipses-outline" size={18} color="#f1f5f9" />
+                <Text style={styles.footerText}>{item.comments}</Text>
+              </View>
+              <View style={styles.footerItem}>
+                <Ionicons name="repeat-outline" size={18} color="#f1f5f9" />
+                <Text style={styles.footerText}>{item.shares}</Text>
+              </View>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -133,14 +196,15 @@ function HomeScreen() {
 function MessagesScreen() {
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.header}>
-        <Text style={styles.logo}>Messages</Text>
-        <Ionicons name="create-outline" size={24} color="#1f2937" />
+      <View style={styles.headerPanel}>
+        <Text style={styles.panelTitle}>Messages</Text>
+        <Ionicons name="create-outline" size={22} color="#e2e8f0" />
       </View>
 
       <FlatList
         data={messages}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
           <View style={styles.chatItem}>
             <View style={styles.chatAvatar}>
@@ -168,27 +232,27 @@ function MessagesScreen() {
 function CreateScreen() {
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.header}>
-        <Text style={styles.logo}>Create</Text>
+      <View style={styles.headerPanel}>
+        <Text style={styles.panelTitle}>Create</Text>
       </View>
 
       <View style={styles.composeCard}>
-        <Text style={styles.label}>Share an update</Text>
+        <Text style={styles.composeLabel}>Share a thought</Text>
         <TextInput
           multiline
-          placeholder="What is happening today?"
-          placeholderTextColor="#9ca3af"
-          style={styles.textInput}
+          placeholder="What's happening today?"
+          placeholderTextColor="#94a3b8"
+          style={styles.composeInput}
         />
 
         <View style={styles.composeActions}>
           <Text style={styles.actionPill}>📷 Photo</Text>
-          <Text style={styles.actionPill}>🎥 Video</Text>
-          <Text style={styles.actionPill}>📍 Check-in</Text>
+          <Text style={styles.actionPill}>🎥 Reel</Text>
+          <Text style={styles.actionPill}>📍 Location</Text>
         </View>
 
         <Pressable style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>Post</Text>
+          <Text style={styles.primaryButtonText}>Post now</Text>
         </Pressable>
       </View>
     </SafeAreaView>
@@ -198,14 +262,15 @@ function CreateScreen() {
 function CallsScreen() {
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.header}>
-        <Text style={styles.logo}>Calls</Text>
-        <Ionicons name="videocam-outline" size={24} color="#1f2937" />
+      <View style={styles.headerPanel}>
+        <Text style={styles.panelTitle}>Calls</Text>
+        <Ionicons name="videocam-outline" size={22} color="#e2e8f0" />
       </View>
 
       <FlatList
         data={calls}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
           <View style={styles.callItem}>
             <View style={styles.chatAvatar}>
@@ -226,8 +291,8 @@ function CallsScreen() {
 function ProfileScreen() {
   return (
     <SafeAreaView style={styles.screen}>
-      <View style={styles.header}>
-        <Text style={styles.logo}>Profile</Text>
+      <View style={styles.headerPanel}>
+        <Text style={styles.panelTitle}>Profile</Text>
       </View>
 
       <View style={styles.profileCard}>
@@ -239,17 +304,17 @@ function ProfileScreen() {
         <Text style={styles.profileHandle}>@ada_works</Text>
 
         <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>8.4K</Text>
-            <Text style={styles.statLabel}>Followers</Text>
+          <View style={styles.statMiniBox}>
+            <Text style={styles.statTextValue}>8.4K</Text>
+            <Text style={styles.statTextLabel}>Followers</Text>
           </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>1.2K</Text>
-            <Text style={styles.statLabel}>Following</Text>
+          <View style={styles.statMiniBox}>
+            <Text style={styles.statTextValue}>1.2K</Text>
+            <Text style={styles.statTextLabel}>Following</Text>
           </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>240</Text>
-            <Text style={styles.statLabel}>Posts</Text>
+          <View style={styles.statMiniBox}>
+            <Text style={styles.statTextValue}>240</Text>
+            <Text style={styles.statTextLabel}>Posts</Text>
           </View>
         </View>
       </View>
@@ -257,7 +322,7 @@ function ProfileScreen() {
   );
 }
 
-function App() {
+function AppNavigator() {
   return (
     <NavigationContainer>
       <Tab.Navigator
@@ -274,12 +339,20 @@ function App() {
             return <Ionicons name={iconName} size={size} color={color} />;
           },
           headerShown: false,
-          tabBarActiveTintColor: '#7c3aed',
-          tabBarInactiveTintColor: '#64748b',
+          tabBarActiveTintColor: '#c4b5fd',
+          tabBarInactiveTintColor: '#94a3b8',
           tabBarStyle: {
-            height: 64,
-            paddingBottom: 8,
-            paddingTop: 8,
+            backgroundColor: 'rgba(15, 23, 42, 0.85)',
+            borderTopWidth: 0,
+            height: 72,
+            paddingBottom: 12,
+            paddingTop: 10,
+            borderTopLeftRadius: 22,
+            borderTopRightRadius: 22,
+          },
+          tabBarLabelStyle: {
+            fontSize: 11,
+            fontWeight: '600',
           },
         })}
       >
@@ -296,130 +369,283 @@ function App() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#f8fafc',
+    backgroundColor: '#07111d',
   },
-  header: {
+  scrollContent: {
+    paddingHorizontal: 18,
+    paddingBottom: 28,
+  },
+  topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    paddingTop: 18,
+    paddingBottom: 12,
   },
-  logo: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
+  eyebrow: {
+    color: '#94a3b8',
+    fontSize: 12,
+    letterSpacing: 0.5,
   },
-  storyContainer: {
+  brand: {
+    color: '#f8fafc',
+    fontWeight: '800',
+    fontSize: 28,
+    letterSpacing: -0.7,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  iconButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 14,
+    backgroundColor: 'rgba(148, 163, 184, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchBox: {
+    marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.18)',
+    borderRadius: 18,
+    paddingHorizontal: 14,
     paddingVertical: 12,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eef2ff',
+  },
+  searchInput: {
+    flex: 1,
+    color: '#f8fafc',
+    fontSize: 14,
+  },
+  statsCard: {
+    marginTop: 18,
+    padding: 16,
+    borderRadius: 24,
+    backgroundColor: 'rgba(15, 23, 42, 0.78)',
+    borderWidth: 1,
+    borderColor: 'rgba(196, 181, 253, 0.25)',
+  },
+  statsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  statsTitle: {
+    color: '#f8fafc',
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  statsTag: {
+    color: '#c4b5fd',
+    backgroundColor: 'rgba(139, 92, 246, 0.18)',
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    fontWeight: '700',
+    fontSize: 10,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  statNumber: {
+    color: '#f8fafc',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  statLabel: {
+    color: '#94a3b8',
+    fontSize: 11,
+    marginTop: 4,
+    textTransform: 'capitalize',
+  },
+  storySection: {
+    marginTop: 18,
+    paddingVertical: 6,
   },
   storyWrap: {
     alignItems: 'center',
-    marginHorizontal: 10,
+    marginRight: 18,
   },
-  storyCircle: {
-    width: 62,
-    height: 62,
-    borderRadius: 31,
+  storyRing: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    padding: 2,
+    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
+    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+  },
+  storyActiveRing: {
+    shadowColor: '#c4b5fd',
+    shadowOpacity: 0.7,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  storyCircle: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   storyInitial: {
     color: '#fff',
+    fontWeight: '800',
     fontSize: 22,
-    fontWeight: '700',
   },
   storyName: {
     fontSize: 11,
-    color: '#374151',
+    color: '#cbd5e1',
+    marginTop: 8,
   },
-  card: {
-    backgroundColor: '#fff',
-    marginTop: 12,
-    marginHorizontal: 12,
-    borderRadius: 18,
-    padding: 14,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 2,
+  trendingWrap: {
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  sectionTitle: {
+    color: '#f8fafc',
+    fontWeight: '700',
+    fontSize: 18,
+    marginBottom: 12,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  chip: {
+    backgroundColor: 'rgba(148,163,184,0.12)',
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(148,163,184,0.18)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  chipText: {
+    color: '#e2e8f0',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  feedCard: {
+    backgroundColor: 'rgba(15, 23, 42, 0.78)',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.18)',
+    padding: 16,
+    marginTop: 18,
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
   },
   avatar: {
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#a78bfa',
+    backgroundColor: '#8b5cf6',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: 12,
   },
   avatarText: {
     color: '#fff',
-    fontWeight: '700',
     fontSize: 18,
+    fontWeight: '800',
   },
-  userMeta: {
+  metaWrap: {
     flex: 1,
   },
   authorName: {
-    fontSize: 16,
+    color: '#f8fafc',
+    fontSize: 15,
     fontWeight: '700',
-    color: '#111827',
   },
   handleText: {
+    color: '#94a3b8',
     fontSize: 12,
-    color: '#6b7280',
     marginTop: 2,
   },
   postText: {
+    color: '#e2e8f0',
     fontSize: 15,
     lineHeight: 22,
-    color: '#1f2937',
+    marginTop: 14,
     marginBottom: 12,
   },
   postImage: {
     width: '100%',
-    height: 220,
-    borderRadius: 14,
-    marginBottom: 10,
+    height: 240,
+    borderRadius: 18,
+    marginBottom: 12,
   },
-  actionRow: {
+  cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 4,
+    alignItems: 'center',
+    paddingTop: 6,
   },
-  actionText: {
-    color: '#475569',
-    fontSize: 13,
+  footerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  footerText: {
+    color: '#e2e8f0',
+    fontSize: 12,
     fontWeight: '600',
+  },
+  headerPanel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingTop: 20,
+    paddingBottom: 12,
+  },
+  panelTitle: {
+    color: '#f8fafc',
+    fontWeight: '800',
+    fontSize: 26,
+  },
+  listContent: {
+    paddingHorizontal: 18,
+    paddingBottom: 30,
   },
   chatItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    marginHorizontal: 12,
-    marginTop: 10,
-    borderRadius: 16,
-    padding: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    borderWidth: 1,
+    borderColor: 'rgba(148,163,184,0.1)',
+    marginBottom: 12,
   },
   chatAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#c4b5fd',
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#c084fc',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -433,169 +659,167 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chatName: {
-    fontSize: 16,
+    color: '#f8fafc',
     fontWeight: '700',
-    color: '#111827',
+    fontSize: 15,
   },
   chatTime: {
+    color: '#94a3b8',
     fontSize: 11,
-    color: '#6b7280',
   },
   chatPreview: {
     marginTop: 4,
+    color: '#94a3b8',
     fontSize: 13,
-    color: '#6b7280',
   },
   unreadBadge: {
-    minWidth: 22,
-    height: 22,
-    backgroundColor: '#7c3aed',
-    borderRadius: 11,
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#8b5cf6',
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 8,
+    marginLeft: 12,
   },
   unreadText: {
     color: '#fff',
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   composeCard: {
-    backgroundColor: '#fff',
-    margin: 16,
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 3,
+    margin: 18,
+    padding: 18,
+    borderRadius: 28,
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(196, 181, 253, 0.18)',
   },
-  label: {
-    fontSize: 18,
+  composeLabel: {
+    color: '#f8fafc',
     fontWeight: '700',
-    color: '#111827',
+    fontSize: 20,
     marginBottom: 12,
   },
-  textInput: {
-    minHeight: 120,
-    backgroundColor: '#f8fafc',
-    borderRadius: 16,
+  composeInput: {
+    minHeight: 130,
+    borderRadius: 18,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+    borderColor: 'rgba(148,163,184,0.18)',
     padding: 14,
+    color: '#f8fafc',
+    fontSize: 15,
     textAlignVertical: 'top',
-    fontSize: 16,
-    color: '#1f2937',
   },
   composeActions: {
     flexDirection: 'row',
-    marginTop: 16,
-    marginBottom: 18,
-    gap: 10,
     flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 18,
+    marginBottom: 18,
   },
   actionPill: {
-    backgroundColor: '#f3e8ff',
-    color: '#6d28d9',
+    backgroundColor: 'rgba(139,92,246,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(196, 181, 253, 0.25)',
+    borderRadius: 999,
+    color: '#ddd6fe',
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 999,
-    fontWeight: '600',
     fontSize: 12,
+    fontWeight: '600',
   },
   primaryButton: {
-    backgroundColor: '#7c3aed',
+    backgroundColor: '#8b5cf6',
     height: 48,
-    borderRadius: 14,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
   primaryButtonText: {
     color: '#fff',
-    fontWeight: '700',
-    fontSize: 16,
+    fontWeight: '800',
+    fontSize: 15,
   },
   callItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    marginHorizontal: 12,
-    marginTop: 10,
-    borderRadius: 16,
-    padding: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    borderWidth: 1,
+    borderColor: 'rgba(148,163,184,0.1)',
+    marginBottom: 12,
   },
   callMeta: {
     flex: 1,
   },
   callStatus: {
+    color: '#34d399',
     fontWeight: '700',
     fontSize: 11,
-    color: '#10b981',
   },
   missed: {
-    color: '#ef4444',
+    color: '#f87171',
   },
   profileCard: {
-    backgroundColor: '#fff',
-    margin: 16,
+    margin: 18,
     padding: 20,
-    borderRadius: 22,
+    borderRadius: 28,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
-    elevation: 2,
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(196,181,253,0.18)',
   },
   profileAvatar: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     backgroundColor: '#8b5cf6',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   profileAvatarText: {
     color: '#fff',
+    fontWeight: '800',
     fontSize: 36,
-    fontWeight: '700',
   },
   profileName: {
+    color: '#f8fafc',
     fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
+    fontWeight: '800',
   },
   profileHandle: {
+    color: '#94a3b8',
     fontSize: 14,
-    color: '#6b7280',
     marginTop: 4,
   },
   statsRow: {
     flexDirection: 'row',
-    marginTop: 20,
-    width: '100%',
     justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 24,
+    gap: 10,
   },
-  statBox: {
+  statMiniBox: {
     flex: 1,
+    backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    paddingVertical: 16,
+    borderRadius: 14,
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginHorizontal: 6,
   },
-  statNumber: {
-    fontSize: 18,
+  statTextValue: {
+    color: '#f8fafc',
+    fontSize: 16,
     fontWeight: '800',
-    color: '#111827',
   },
-  statLabel: {
+  statTextLabel: {
+    color: '#94a3b8',
+    fontSize: 11,
     marginTop: 4,
-    fontSize: 12,
-    color: '#64748b',
   },
 });
 
-export default App;
+export default AppNavigator;

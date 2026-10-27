@@ -1,32 +1,39 @@
 # Anambra Life
 
-A starter React Native social media app built with Expo.
+A premium conversational social media app concept for React Native + Expo.
 
-## Features included
-- Home feed with stories and posts
-- Direct messages screen
-- Video/voice call screen
-- Create post screen
-- Profile screen
+## Design direction
+This starter follows a modern Twitter/X-inspired layout with a premium glassmorphism design:
+- dark luxury background
+- translucent cards and panels
+- floating social feed cards
+- story bubbles and trend pills
+- premium neon-violet and cyan accents
+
+## Included screens
+- Home feed
+- Story section
+- Message threads
+- Create post composer
+- Calls screen
+- Profile dashboard
 - Bottom tab navigation
 
-## Run the app
+## Run locally
+```bash
+npm install
+npm start
+```
 
-1. Install dependencies:
-   npm install
+For device simulators:
+```bash
+npm run android
+# or
+npm run ios
+```
 
-2. Start the app:
-   npm start
+## Preview asset
+Open the file below to view the initial premium mockup:
+- `assets/social-preview.svg`
 
-3. Run on a simulator or mobile device:
-   - Android: npm run android
-   - iOS: npm run ios
-
-## Notes
-This is a UI starter for a social media app. You can extend it with:
-- user authentication
-- real-time chat
-- video calls
-- media upload
-- backend with Firebase/Supabase
-- push notifications
+This is designed as a UI reference for the app before real backend and API integration.
