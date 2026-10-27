@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Anambra Life",
+    "slug": "anambra-life",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#7c3aed"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#7c3aed"
+      }
+    }
+  }
+}
