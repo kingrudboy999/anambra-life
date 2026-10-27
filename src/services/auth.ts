@@ -1,3 +1,5 @@
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
+
 export type AuthMode = 'login' | 'signup';
 
 export async function signInWithEmail(email: string, password: string) {
@@ -35,4 +37,4 @@ export async function signOutUser() {
   if (error) throw error;
 }
 
-export { supabase, isSupabaseConfigured } from './supabase';
+export { supabase, isSupabaseConfigured };
