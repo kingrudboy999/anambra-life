@@ -1,7 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -20,11 +19,12 @@ import {
 } from 'react-native';
 
 import { darkTheme, lightTheme, type ThemeTokens } from './src/theme';
-import { posts, stories, conversations, notifications, suggestions, profileData } from './src/data/mockData';
+import { posts, stories, notifications, suggestions, profileData } from './src/data/mockData';
 import { GlassCard } from './src/components/GlassCard';
+import { isSupabaseConfigured, supabase } from './src/lib/supabase';
+import { signInWithEmail, signOutUser, signUpWithEmail, type AuthMode } from './src/services/auth';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
-const Stack = createNativeStackNavigator();
 
 export type RootTabParamList = {
   Home: undefined;
@@ -34,15 +34,10 @@ export type RootTabParamList = {
   Profile: undefined;
 };
 
-type AppThemeMode = 'dark' | 'light';
-
 type AppState = {
-  themeMode: AppThemeMode;
   isLoggedIn: boolean;
   showSplash: boolean;
 };
-
-const initialTheme: ThemeTokens = darkTheme;
 
 const appGradient = ['#060d18', '#0f172a', '#1d1b4b', '#100d2a'];
 
@@ -94,10 +89,22 @@ function SplashScreen({ onFinish }: { onFinish: () => void }) {
   );
 }
 
-function AuthScreen({ onLogin }: { onLogin: () => void }) {
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+function AuthScreen({
+  onSubmit,
+  isLoading,
+  error,
+}: {
+  onSubmit: (email: string, password: string, mode: AuthMode) => Promise<void>;
+  isLoading: boolean;
+  error: string | null;
+}) {
+  const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const handleSubmit = async () => {
+    await onSubmit(email, password, mode);
+  };
 
   return (
     <SafeAreaView style={styles.authScreen}>
@@ -139,15 +146,11 @@ function AuthScreen({ onLogin }: { onLogin: () => void }) {
             secureTextEntry
           />
 
-          {mode === 'login' ? (
-            <Pressable onPress={onLogin} style={styles.primaryBtn}>
-              <Text style={styles.primaryBtnText}>Continue</Text>
-            </Pressable>
-          ) : (
-            <Pressable onPress={onLogin} style={styles.primaryBtn}>
-              <Text style={styles.primaryBtnText}>Create account</Text>
-            </Pressable>
-          )}
+          {error ? <Text style={styles.errorBox}>{error}</Text> : null}
+
+          <Pressable onPress={handleSubmit} disabled={isLoading} style={[styles.primaryBtn, isLoading && styles.disabledBtn]}>
+            <Text style={styles.primaryBtnText}>{isLoading ? 'Please wait...' : mode === 'login' ? 'Continue' : 'Create account'}</Text>
+          </Pressable>
 
           <Pressable style={styles.ghostBtn}>
             <Text style={styles.ghostBtnText}>Forgot password?</Text>
@@ -168,7 +171,7 @@ function AuthScreen({ onLogin }: { onLogin: () => void }) {
             </Pressable>
           </View>
 
-          <Pressable onPress={onLogin} style={styles.guestBtn}>
+          <Pressable onPress={() => onSubmit('guest@anambra.app', 'guest123', 'login')} style={styles.guestBtn}>
             <Text style={styles.guestText}>Continue as guest</Text>
           </Pressable>
         </GlassCard>
@@ -380,7 +383,7 @@ function NotificationsScreen() {
   );
 }
 
-function ProfileScreen() {
+function ProfileScreen({ onSignOut }: { onSignOut: () => Promise<void> }) {
   return (
     <SafeAreaView style={styles.feedScreen}>
       <ScrollView contentContainerStyle={styles.feedContent}>
@@ -409,8 +412,12 @@ function ProfileScreen() {
           </View>
         </GlassCard>
 
+        <Pressable onPress={onSignOut} style={styles.signOutBtn}>
+          <Text style={styles.signOutText}>Sign out</Text>
+        </Pressable>
+
         <Text style={styles.sectionTitle}>Highlights</Text>
-        <View style={styles.highlightRow}> 
+        <View style={styles.highlightRow}>
           {['Travel', 'Design', 'Community', 'Launch'].map((item, i) => (
             <View key={item} style={[styles.highlightBubble, { backgroundColor: ['#8B5CF6', '#22D3EE', '#F472B6', '#F59E0B'][i] }]}>
               <Text style={styles.highlightText}>{item.substring(0, 1)}</Text>
@@ -422,34 +429,7 @@ function ProfileScreen() {
   );
 }
 
-function SettingsScreen() {
-  return (
-    <SafeAreaView style={styles.feedScreen}>
-      <View style={styles.headerRow}>
-        <Text style={styles.headerTitle}>Settings</Text>
-      </View>
-
-      <View style={styles.settingList}>
-        {[
-          'Account',
-          'Privacy & Security',
-          'Notifications',
-          'Appearance',
-          'Storage',
-          'Help & Support',
-          'About'
-        ].map((item, idx) => (
-          <GlassCard key={item} style={styles.settingItem}>
-            <Text style={styles.settingText}>{item}</Text>
-            <Text style={styles.settingArrow}>{idx % 2 === 0 ? '›' : '›'}</Text>
-          </GlassCard>
-        ))}
-      </View>
-    </SafeAreaView>
-  );
-}
-
-function AppTabs() {
+function AppTabs({ onSignOut }: { onSignOut: () => Promise<void> }) {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -479,29 +459,89 @@ function AppTabs() {
       <Tab.Screen name="Explore" component={ExploreScreen} />
       <Tab.Screen name="Create" component={CreatePostScreen} />
       <Tab.Screen name="Notifications" component={NotificationsScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Profile">
+        {() => <ProfileScreen onSignOut={onSignOut} />}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }
 
 export default function App() {
-  const [themeMode, setThemeMode] = useState<AppThemeMode>('dark');
   const [appState, setAppState] = useState<AppState>({
-    themeMode: 'dark',
     isLoggedIn: false,
     showSplash: true,
   });
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const theme = useMemo(() => (themeMode === 'dark' ? darkTheme : lightTheme), [themeMode]);
+  useEffect(() => {
+    let active = true;
 
-  const handleLogin = () => setAppState((prev) => ({ ...prev, isLoggedIn: true }));
-  const handleSplashComplete = () => setAppState((prev) => ({ ...prev, showSplash: false }));
+    const loadSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (active) {
+        setAppState((prev) => ({ ...prev, isLoggedIn: Boolean(data.session) }));
+      }
+    };
+
+    loadSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (active) {
+        setAppState((prev) => ({ ...prev, isLoggedIn: Boolean(session) }));
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleAuthSubmit = async (email: string, password: string, mode: AuthMode) => {
+    if (!isSupabaseConfigured) {
+      setAuthError('Supabase env vars are missing. Add your URL + anon key to .env');
+      return;
+    }
+
+    if (!email || !password) {
+      setAuthError('Email and password are required.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setAuthError(null);
+
+    try {
+      if (mode === 'login') {
+        await signInWithEmail(email, password);
+      } else {
+        await signUpWithEmail(email, password, 'Anambra User');
+      }
+      setAppState((prev) => ({ ...prev, isLoggedIn: true }));
+    } catch (error: any) {
+      setAuthError(error?.message ?? 'Authentication failed.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOutUser();
+      setAppState((prev) => ({ ...prev, isLoggedIn: false }));
+    } catch (error: any) {
+      setAuthError(error?.message ?? 'Sign out failed.');
+    }
+  };
 
   if (appState.showSplash) {
     return (
       <>
         <StatusBar style="light" />
-        <SplashScreen onFinish={handleSplashComplete} />
+        <SplashScreen onFinish={() => setAppState((prev) => ({ ...prev, showSplash: false }))} />
       </>
     );
   }
@@ -510,16 +550,16 @@ export default function App() {
     return (
       <>
         <StatusBar style="light" />
-        <AuthScreen onLogin={handleLogin} />
+        <AuthScreen onSubmit={handleAuthSubmit} isLoading={isSubmitting} error={authError} />
       </>
     );
   }
 
   return (
     <>
-      <StatusBar style={themeMode === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style="light" />
       <NavigationContainer>
-        <AppTabs />
+        <AppTabs onSignOut={handleSignOut} />
       </NavigationContainer>
     </>
   );
@@ -651,6 +691,16 @@ const styles = StyleSheet.create({
     color: '#f8fafc',
     marginBottom: 12,
   },
+  errorBox: {
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    color: '#fecaca',
+    padding: 10,
+    borderRadius: 12,
+    marginBottom: 12,
+    fontSize: 12,
+  },
   primaryBtn: {
     backgroundColor: '#8b5cf6',
     alignItems: 'center',
@@ -658,6 +708,9 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 14,
     marginTop: 6,
+  },
+  disabledBtn: {
+    opacity: 0.6,
   },
   primaryBtnLarge: {
     backgroundColor: '#8b5cf6',
@@ -1173,6 +1226,20 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 4,
   },
+  signOutBtn: {
+    marginTop: 18,
+    marginBottom: 8,
+    backgroundColor: 'rgba(239,68,68,0.12)',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.4)',
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  signOutText: {
+    color: '#fecaca',
+    fontWeight: '800',
+  },
   highlightRow: {
     flexDirection: 'row',
     gap: 12,
@@ -1190,26 +1257,6 @@ const styles = StyleSheet.create({
   highlightText: {
     color: '#fff',
     fontWeight: '800',
-    fontSize: 18,
-  },
-  settingList: {
-    paddingHorizontal: 18,
-    gap: 10,
-  },
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
-  settingText: {
-    color: '#f8fafc',
-    fontWeight: '700',
-    fontSize: 15,
-  },
-  settingArrow: {
-    color: '#94a3b8',
     fontSize: 18,
   },
 });
