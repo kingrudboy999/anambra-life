@@ -1,22 +1,21 @@
 {
   "expo": {
-    "name": "Anambra Life",
-    "slug": "anambra-life",
+    "name": "Anambra",
+    "slug": "anambra-social",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
-    "splash": {
-      "backgroundColor": "#7c3aed"
-    },
+    "userInterfaceStyle": "automatic",
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anambra.social"
     },
     "android": {
+      "package": "com.anambra.social",
       "adaptiveIcon": {
-        "backgroundColor": "#7c3aed"
+        "backgroundColor": "#0b1220"
       }
     }
   }
